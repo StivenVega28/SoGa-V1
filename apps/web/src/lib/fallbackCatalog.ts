@@ -1,0 +1,58 @@
+import type { Producto } from './types';
+
+export const FALLBACK_CATALOG: Producto[] = [
+  {
+    id: 1,
+    nombre: 'Cámara de seguridad HD',
+    descripcion: 'Videovigilancia HD con visión nocturna y monitoreo desde app móvil.',
+    precio: 149900,
+    categoria: 'Seguridad',
+    imagen: '/img/products/camara-seguridad.svg',
+    proveedor: 'Distribuidora Andina SAS',
+  },
+  {
+    id: 2,
+    nombre: 'Kit alarma domiciliaria',
+    descripcion: 'Kit completo con sensor de movimiento, sirena y control remoto.',
+    precio: 289900,
+    categoria: 'Seguridad',
+    imagen: '/img/products/alarma-domiciliaria.svg',
+    proveedor: 'Distribuidora Andina SAS',
+  },
+  {
+    id: 3,
+    nombre: 'Cerradura inteligente',
+    descripcion: 'Acceso por huella, PIN y app con registro de aperturas.',
+    precio: 449900,
+    categoria: 'Hogar',
+    imagen: '/img/products/cerradura-inteligente.svg',
+    proveedor: 'Distribuidora Andina SAS',
+  },
+  {
+    id: 4,
+    nombre: 'Router WiFi 6',
+    descripcion: 'Doble banda, cobertura extendida y gestión de red centralizada.',
+    precio: 199900,
+    categoria: 'Tecnología',
+    imagen: '/img/products/router-wifi6.svg',
+    proveedor: 'Distribuidora Andina SAS',
+  },
+  {
+    id: 5,
+    nombre: 'Detector de humo',
+    descripcion: 'Alerta sonora y notificación móvil ante concentración de humo.',
+    precio: 79900,
+    categoria: 'Seguridad',
+    imagen: '/img/products/detector-humo.svg',
+    proveedor: 'Importec del Caribe SAS',
+  },
+  {
+    id: 6,
+    nombre: 'Cargador solar portátil',
+    descripcion: 'Batería de 10.000 mAh con panel solar integrado para campo.',
+    precio: 129900,
+    categoria: 'Tecnología',
+    imagen: '/img/products/cargador-solar.svg',
+    proveedor: 'Importec del Caribe SAS',
+  },
+];

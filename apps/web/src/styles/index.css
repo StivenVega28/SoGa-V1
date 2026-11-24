@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * SoGa · Precision Ledger
+ * Identidad visual base — libro contable de alta precisión.
+ * Claro: papel técnico cálido. Oscuro: obsidiana.
+ */
+@layer base {
+  :root {
+    --background: 48 10% 97%;
+    --foreground: 60 3% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 60 3% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 60 3% 8%;
+
+    --primary: 175 77% 26%;
+    --primary-foreground: 48 20% 98%;
+
+    --secondary: 48 10% 93%;
+    --secondary-foreground: 60 3% 12%;
+
+    --muted: 48 8% 94%;
+    --muted-foreground: 60 4% 42%;
+
+    --accent: 175 40% 93%;
+    --accent-foreground: 175 77% 20%;
+
+    --destructive: 12 62% 44%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 48 6% 89%;
+    --input: 48 6% 89%;
+    --ring: 175 77% 26%;
+
+    --surface: 48 12% 99%;
+
+    --radius: 0.375rem;
+  }
+
+  .dark {
+    --background: 210 8% 5%;
+    --foreground: 60 7% 94%;
+
+    --card: 210 9% 9%;
+    --card-foreground: 60 7% 94%;
+
+    --popover: 210 9% 9%;
+    --popover-foreground: 60 7% 94%;
+
+    --primary: 173 80% 40%;
+    --primary-foreground: 210 20% 6%;
+
+    --secondary: 210 9% 13%;
+    --secondary-foreground: 60 7% 94%;
+
+    --muted: 210 9% 13%;
+    --muted-foreground: 210 6% 62%;
+
+    --accent: 173 40% 18%;
+    --accent-foreground: 173 80% 82%;
+
+    --destructive: 6 45% 48%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 217 10% 16%;
+    --input: 217 10% 16%;
+    --ring: 173 80% 40%;
+
+    --surface: 210 9% 7%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
+
+@layer components {
+  /* Números de alta precisión (contable / financiero) */
+  .num {
+    @apply font-mono tabular-nums tracking-tight;
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  /* Regla fina de separación, sin sombras */
+  .hairline {
+    @apply border border-border/60;
+  }
+
+  .grid-lines {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
