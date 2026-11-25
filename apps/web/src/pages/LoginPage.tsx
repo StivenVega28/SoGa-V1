@@ -1,22 +1,46 @@
 import { useState } from 'react';
-import { ArrowLeft, Lock, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/landing/ThemeToggle';
+import { ApiError, iniciarSesion } from '@/lib/api';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!email || !password) {
-      setMessage('Ingresa tu correo y contraseña.');
+    setError(null);
+
+    if (!correo || !contrasena) {
+      setError('Ingresa tu correo y contraseña.');
       return;
     }
-    setMessage('Autenticación en configuración (Fase 1 · Better Auth).');
+
+    setEnviando(true);
+    try {
+      await iniciarSesion(correo, contrasena);
+      await queryClient.invalidateQueries({ queryKey: ['perfil'] });
+      navigate('/admin', { replace: true });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setError('Correo o contraseña incorrectos.');
+      } else if (err instanceof ApiError && err.status === 429) {
+        setError('Demasiados intentos. Espera un minuto e inténtalo de nuevo.');
+      } else {
+        setError(err instanceof Error ? err.message : 'No fue posible iniciar sesión.');
+      }
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -43,8 +67,8 @@ export function LoginPage() {
             Control operativo con precisión de libro contable.
           </h1>
           <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-            Inventario, ventas, cotizaciones y clientes en un solo lugar. Cada movimiento queda
-            trazado y auditable.
+            Productos, inventario, ventas, cotizaciones y clientes en un solo lugar. Cada movimiento
+            queda trazado y auditable.
           </p>
         </div>
 
@@ -80,42 +104,45 @@ export function LoginPage() {
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4" noValidate>
             <div className="space-y-1.5">
-              <Label htmlFor="email">Correo</Label>
+              <Label htmlFor="correo">Correo</Label>
               <Input
-                id="email"
+                id="correo"
                 type="email"
                 autoComplete="email"
-                placeholder="tu@solucionesgarantizadas.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@soga.com"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                required
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="contrasena">Contraseña</Label>
                 <a href="#recuperar" className="text-[11px] text-primary hover:underline">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
               <Input
-                id="password"
+                id="contrasena"
                 type="password"
                 autoComplete="current-password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+                required
               />
             </div>
 
-            {message && (
-              <p className="rounded-sm border border-border/60 bg-secondary/50 px-3 py-2 text-[12px] text-muted-foreground">
-                {message}
+            {error && (
+              <p className="rounded-sm border border-destructive/25 bg-destructive/10 px-3 py-2 text-[12px] text-destructive">
+                {error}
               </p>
             )}
 
-            <Button type="submit" className="w-full" size="lg">
-              Entrar al panel
+            <Button type="submit" className="w-full" size="lg" disabled={enviando}>
+              {enviando && <Loader2 className="size-4 animate-spin" />}
+              {enviando ? 'Validando…' : 'Entrar al panel'}
             </Button>
           </form>
 

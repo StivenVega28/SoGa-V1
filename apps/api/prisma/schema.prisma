@@ -1,5 +1,5 @@
-// SoGa · Precision Ledger — Prisma schema
-// Dinero = Decimal(12,2). Inventario = kardex (inventory_movements) + stock derivado.
+// SoGa · Precision Ledger — esquema Prisma (nombres de negocio en español)
+// Dinero = Decimal(12,2). Inventario = kardex (movimientos_inventario) + stock derivado.
 
 generator client {
   provider = "prisma-client-js"
@@ -10,230 +10,325 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum MovementType {
+enum TipoMovimiento {
   ENTRADA
   SALIDA
   AJUSTE
   ANULACION
 }
 
-enum SaleStatus {
+enum EstadoVenta {
   BORRADOR
   CONFIRMADA
   ANULADA
 }
 
-enum QuoteStatus {
+enum EstadoCotizacion {
   BORRADOR
   ENVIADA
   ACEPTADA
   RECHAZADA
 }
 
-model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique @db.VarChar(100)
-  permissions String   @db.Text
-  description String   @db.VarChar(255)
-  users       User[]
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+model Rol {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @unique @db.VarChar(100)
+  permisos      String   @db.Text
+  descripcion   String   @db.VarChar(255)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @default(now()) @updatedAt @map("actualizado_en")
+  usuarios      Usuario[]
 
   @@map("roles")
 }
 
-model User {
-  id           Int       @id @default(autoincrement())
-  roleId       Int       @map("role_id")
-  document     String    @unique @db.VarChar(20)
-  firstName    String    @map("first_name") @db.VarChar(100)
-  lastName     String    @map("last_name") @db.VarChar(100)
-  phone        String?   @db.VarChar(20)
-  email        String    @unique @db.VarChar(150)
-  passwordHash String    @map("password_hash") @db.VarChar(255)
-  emailVerified Boolean  @default(false) @map("email_verified")
-  deletedAt    DateTime? @map("deleted_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  role         Role      @relation(fields: [roleId], references: [id])
+model Usuario {
+  id                String    @id @db.VarChar(36)
+  rolId             Int?      @map("rol_id")
+  documento         String?   @unique @db.VarChar(20)
+  nombre            String    @db.VarChar(150)
+  apellido          String?   @db.VarChar(100)
+  telefono          String?   @db.VarChar(20)
+  correo            String    @unique @db.VarChar(150)
+  correoVerificado  Boolean   @default(false) @map("correo_verificado")
+  imagen            String?   @db.VarChar(255)
+  eliminadoEn       DateTime? @map("eliminado_en")
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @default(now()) @updatedAt @map("actualizado_en")
+  rol               Rol?      @relation(fields: [rolId], references: [id])
+  sesiones          Sesion[]
+  cuentas           Cuenta[]
 
-  @@map("users")
+  @@index([rolId])
+  @@map("usuarios")
 }
 
-model Supplier {
-  id          Int       @id @default(autoincrement())
-  nit         String    @unique @db.VarChar(20)
-  name        String    @db.VarChar(150)
-  city        String    @db.VarChar(100)
-  address     String    @db.VarChar(150)
-  phone       String    @db.VarChar(20)
-  email       String    @db.VarChar(150)
-  description String?   @db.Text
-  deletedAt   DateTime? @map("deleted_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  products    Product[]
-  purchases   Purchase[]
+model Sesion {
+  id             String   @id @db.VarChar(36)
+  usuarioId      String   @map("usuario_id") @db.VarChar(36)
+  token          String   @unique @db.VarChar(255)
+  expiraEn       DateTime @map("expira_en")
+  ip             String?  @db.VarChar(64)
+  agenteUsuario  String?  @map("agente_usuario") @db.VarChar(255)
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en")
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@map("suppliers")
+  @@index([usuarioId])
+  @@map("sesiones")
 }
 
-model Customer {
-  id        Int       @id @default(autoincrement())
-  nit       String    @unique @db.VarChar(20)
-  firstName String    @map("first_name") @db.VarChar(100)
-  lastName  String?   @map("last_name") @db.VarChar(100)
-  city      String    @db.VarChar(100)
-  branch    String?   @db.VarChar(100)
-  address   String    @db.VarChar(150)
-  phone     String    @db.VarChar(20)
-  email     String    @db.VarChar(150)
-  deletedAt DateTime? @map("deleted_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  sales     Sale[]
-  quotes    Quote[]
+model Cuenta {
+  id               String    @id @db.VarChar(36)
+  cuentaId         String    @map("cuenta_id") @db.VarChar(255)
+  proveedorId      String    @map("proveedor_id") @db.VarChar(80)
+  usuarioId        String    @map("usuario_id") @db.VarChar(36)
+  tokenAcceso      String?   @map("token_acceso") @db.Text
+  tokenRefresco    String?   @map("token_refresco") @db.Text
+  tokenId          String?   @map("token_id") @db.Text
+  expiraAccesoEn   DateTime? @map("expira_acceso_en")
+  expiraRefrescoEn DateTime? @map("expira_refresco_en")
+  alcance          String?   @db.Text
+  contrasena       String?   @db.Text
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en")
+  usuario          Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@map("customers")
+  @@index([usuarioId])
+  @@map("cuentas")
 }
 
-model Product {
-  id          Int       @id @default(autoincrement())
-  supplierId  Int?      @map("supplier_id")
-  name        String    @db.VarChar(200)
-  description String    @db.Text
-  price       Decimal   @db.Decimal(12, 2)
-  category    String    @db.VarChar(100)
-  image       String?   @db.VarChar(255)
-  active      Boolean   @default(true)
-  deletedAt   DateTime? @map("deleted_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  supplier    Supplier? @relation(fields: [supplierId], references: [id])
-  purchases   Purchase[]
-  movements   InventoryMovement[]
-  saleItems   SaleItem[]
-  quoteItems  QuoteItem[]
+model Verificacion {
+  id             String   @id @db.VarChar(36)
+  identificador  String   @map("identificador") @db.VarChar(255)
+  valor          String   @db.Text
+  expiraEn       DateTime @map("expira_en")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en")
 
-  @@map("products")
+  @@index([identificador])
+  @@map("verificaciones")
 }
 
-model Purchase {
-  id          Int      @id @default(autoincrement())
-  supplierId  Int      @map("supplier_id")
-  productId   Int      @map("product_id")
-  quantity    Int
-  unitCost    Decimal  @map("unit_cost") @db.Decimal(12, 2)
-  total       Decimal  @db.Decimal(12, 2)
-  purchasedAt DateTime @map("purchased_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  supplier    Supplier @relation(fields: [supplierId], references: [id])
-  product     Product  @relation(fields: [productId], references: [id])
+model Proveedor {
+  id            Int       @id @default(autoincrement())
+  nit           String    @unique @db.VarChar(20)
+  nombre        String    @db.VarChar(150)
+  ciudad        String    @db.VarChar(100)
+  direccion     String    @db.VarChar(150)
+  telefono      String    @db.VarChar(20)
+  correo        String    @db.VarChar(150)
+  descripcion   String?   @db.Text
+  eliminadoEn   DateTime? @map("eliminado_en")
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime  @default(now()) @updatedAt @map("actualizado_en")
+  productos     Producto[]
+  compras       Compra[]
 
-  @@map("purchases")
+  @@map("proveedores")
 }
 
-model InventoryMovement {
-  id            Int          @id @default(autoincrement())
-  productId     Int          @map("product_id")
-  type          MovementType
-  quantity      Int
-  unitCost      Decimal?     @map("unit_cost") @db.Decimal(12, 2)
-  referenceType String?      @map("reference_type") @db.VarChar(40)
-  referenceId   Int?         @map("reference_id")
-  note          String?      @db.VarChar(255)
-  occurredAt    DateTime     @map("occurred_at")
-  createdAt     DateTime     @default(now()) @map("created_at")
-  product       Product      @relation(fields: [productId], references: [id])
+model Cliente {
+  id            Int       @id @default(autoincrement())
+  nit           String    @unique @db.VarChar(20)
+  nombre        String    @db.VarChar(100)
+  apellido      String?   @db.VarChar(100)
+  ciudad        String    @db.VarChar(100)
+  sucursal      String?   @db.VarChar(100)
+  direccion     String    @db.VarChar(150)
+  telefono      String    @db.VarChar(20)
+  correo        String    @db.VarChar(150)
+  eliminadoEn   DateTime? @map("eliminado_en")
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime  @default(now()) @updatedAt @map("actualizado_en")
+  ventas        Venta[]
+  cotizaciones  Cotizacion[]
 
-  @@index([productId, occurredAt])
-  @@map("inventory_movements")
+  @@map("clientes")
 }
 
-model Sale {
-  id         Int        @id @default(autoincrement())
-  customerId Int        @map("customer_id")
-  issuedAt   DateTime   @map("issued_at")
-  subtotal   Decimal    @db.Decimal(12, 2)
-  tax        Decimal    @db.Decimal(12, 2)
-  total      Decimal    @db.Decimal(12, 2)
-  status     SaleStatus @default(BORRADOR)
-  notes      String?    @db.Text
-  deletedAt  DateTime?  @map("deleted_at")
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
-  customer   Customer   @relation(fields: [customerId], references: [id])
-  items      SaleItem[]
+model Categoria {
+  id            Int        @id @default(autoincrement())
+  nombre        String     @unique @db.VarChar(100)
+  descripcion   String?    @db.VarChar(255)
+  creadoEn      DateTime   @default(now()) @map("creado_en")
+  actualizadoEn DateTime   @default(now()) @updatedAt @map("actualizado_en")
+  productos     Producto[]
 
-  @@map("sales")
+  @@map("categorias")
 }
 
-model SaleItem {
-  id        Int     @id @default(autoincrement())
-  saleId    Int     @map("sale_id")
-  productId Int     @map("product_id")
-  quantity  Int
-  unitPrice Decimal @map("unit_price") @db.Decimal(12, 2)
-  lineTotal Decimal @map("line_total") @db.Decimal(12, 2)
-  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
+model Producto {
+  id             Int       @id @default(autoincrement())
+  proveedorId    Int?      @map("proveedor_id")
+  categoriaId    Int       @map("categoria_id")
+  sku            String    @unique @db.VarChar(40)
+  nombre         String    @db.VarChar(200)
+  descripcion    String    @db.Text
+  precio         Decimal   @db.Decimal(12, 2)
+  costo          Decimal   @default(0) @db.Decimal(12, 2)
+  unidad         String    @default("UNIDAD") @db.VarChar(20)
+  stockMinimo    Int       @default(0) @map("stock_minimo")
+  imagen         String?   @db.VarChar(255)
+  imagenes       Json?
+  destacado      Boolean   @default(false)
+  activo         Boolean   @default(true)
+  eliminadoEn    DateTime? @map("eliminado_en")
+  creadoEn       DateTime  @default(now()) @map("creado_en")
+  actualizadoEn  DateTime  @default(now()) @updatedAt @map("actualizado_en")
+  proveedor      Proveedor? @relation(fields: [proveedorId], references: [id])
+  categoria      Categoria  @relation(fields: [categoriaId], references: [id])
+  compras        Compra[]
+  movimientos    MovimientoInventario[]
+  variantes      Variante[]
+  itemsVenta     DetalleVenta[]
+  itemsCotizacion DetalleCotizacion[]
 
-  @@map("sale_items")
+  @@index([proveedorId])
+  @@index([categoriaId])
+  @@map("productos")
 }
 
-model Quote {
-  id         Int         @id @default(autoincrement())
-  customerId Int         @map("customer_id")
-  issuedAt   DateTime    @map("issued_at")
-  subtotal   Decimal     @db.Decimal(12, 2)
-  tax        Decimal     @db.Decimal(12, 2)
-  total      Decimal     @db.Decimal(12, 2)
-  status     QuoteStatus @default(BORRADOR)
-  deletedAt  DateTime?   @map("deleted_at")
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  items      QuoteItem[]
+model Variante {
+  id            Int      @id @default(autoincrement())
+  productoId    Int      @map("producto_id")
+  sku           String   @unique @db.VarChar(60)
+  nombre        String   @db.VarChar(120)
+  precio        Decimal? @db.Decimal(12, 2)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @default(now()) @updatedAt @map("actualizado_en")
+  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
 
-  @@map("quotes")
+  @@index([productoId])
+  @@map("variantes")
 }
 
-model QuoteItem {
-  id          Int     @id @default(autoincrement())
-  quoteId     Int     @map("quote_id")
-  productId   Int     @map("product_id")
-  quantity    Int
-  unitPrice   Decimal @map("unit_price") @db.Decimal(12, 2)
-  lineTotal   Decimal @map("line_total") @db.Decimal(12, 2)
-  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-  product     Product @relation(fields: [productId], references: [id])
+model Compra {
+  id             Int      @id @default(autoincrement())
+  proveedorId    Int      @map("proveedor_id")
+  productoId     Int      @map("producto_id")
+  cantidad       Int
+  costoUnitario  Decimal  @map("costo_unitario") @db.Decimal(12, 2)
+  total          Decimal  @db.Decimal(12, 2)
+  compradoEn     DateTime @map("comprado_en")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  proveedor      Proveedor @relation(fields: [proveedorId], references: [id])
+  producto       Producto  @relation(fields: [productoId], references: [id])
 
-  @@map("quote_items")
+  @@index([proveedorId])
+  @@index([productoId])
+  @@map("compras")
 }
 
-model Message {
-  id        Int      @id @default(autoincrement())
-  firstName String   @map("first_name") @db.VarChar(100)
-  lastName  String?  @map("last_name") @db.VarChar(100)
-  email     String   @db.VarChar(150)
-  phone     String?  @db.VarChar(20)
-  subject   String   @db.VarChar(150)
-  message   String   @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
+model MovimientoInventario {
+  id              Int            @id @default(autoincrement())
+  productoId      Int            @map("producto_id")
+  tipo            TipoMovimiento
+  cantidad        Int
+  costoUnitario   Decimal?       @map("costo_unitario") @db.Decimal(12, 2)
+  tipoReferencia  String?        @map("tipo_referencia") @db.VarChar(40)
+  referenciaId    Int?           @map("referencia_id")
+  nota            String?        @db.VarChar(255)
+  ocurridoEn      DateTime       @map("ocurrido_en")
+  creadoEn        DateTime       @default(now()) @map("creado_en")
+  producto        Producto       @relation(fields: [productoId], references: [id])
 
-  @@map("messages")
+  @@index([productoId, ocurridoEn])
+  @@index([tipoReferencia, referenciaId])
+  @@map("movimientos_inventario")
 }
 
-model AuditLog {
-  id         Int      @id @default(autoincrement())
-  actorId    Int?     @map("actor_id")
-  action     String   @db.VarChar(80)
-  entity     String   @db.VarChar(80)
-  entityId   Int?     @map("entity_id")
-  beforeData String?  @map("before_data") @db.Text
-  afterData  String?  @map("after_data") @db.Text
-  createdAt  DateTime @default(now()) @map("created_at")
+model Venta {
+  id            Int        @id @default(autoincrement())
+  clienteId     Int        @map("cliente_id")
+  emitidaEn     DateTime   @map("emitida_en")
+  subtotal      Decimal    @db.Decimal(12, 2)
+  impuesto      Decimal    @db.Decimal(12, 2)
+  total         Decimal    @db.Decimal(12, 2)
+  estado        EstadoVenta @default(BORRADOR)
+  notas         String?    @db.Text
+  eliminadoEn   DateTime?  @map("eliminado_en")
+  creadoEn      DateTime   @default(now()) @map("creado_en")
+  actualizadoEn DateTime   @default(now()) @updatedAt @map("actualizado_en")
+  cliente       Cliente    @relation(fields: [clienteId], references: [id])
+  items         DetalleVenta[]
 
-  @@index([entity, entityId])
-  @@map("audit_logs")
+  @@index([clienteId])
+  @@map("ventas")
+}
+
+model DetalleVenta {
+  id             Int     @id @default(autoincrement())
+  ventaId        Int     @map("venta_id")
+  productoId     Int     @map("producto_id")
+  cantidad       Int
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 2)
+  totalLinea     Decimal @map("total_linea") @db.Decimal(12, 2)
+  venta          Venta   @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  producto       Producto @relation(fields: [productoId], references: [id])
+
+  @@index([ventaId])
+  @@index([productoId])
+  @@map("detalle_ventas")
+}
+
+model Cotizacion {
+  id            Int              @id @default(autoincrement())
+  clienteId     Int              @map("cliente_id")
+  emitidaEn     DateTime         @map("emitida_en")
+  subtotal      Decimal          @db.Decimal(12, 2)
+  impuesto      Decimal          @db.Decimal(12, 2)
+  total         Decimal          @db.Decimal(12, 2)
+  estado        EstadoCotizacion @default(BORRADOR)
+  eliminadoEn   DateTime?        @map("eliminado_en")
+  creadoEn      DateTime         @default(now()) @map("creado_en")
+  actualizadoEn DateTime         @default(now()) @updatedAt @map("actualizado_en")
+  cliente       Cliente          @relation(fields: [clienteId], references: [id])
+  items         DetalleCotizacion[]
+
+  @@index([clienteId])
+  @@map("cotizaciones")
+}
+
+model DetalleCotizacion {
+  id             Int        @id @default(autoincrement())
+  cotizacionId   Int        @map("cotizacion_id")
+  productoId     Int        @map("producto_id")
+  cantidad       Int
+  precioUnitario Decimal    @map("precio_unitario") @db.Decimal(12, 2)
+  totalLinea     Decimal    @map("total_linea") @db.Decimal(12, 2)
+  cotizacion     Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  producto       Producto   @relation(fields: [productoId], references: [id])
+
+  @@index([cotizacionId])
+  @@index([productoId])
+  @@map("detalle_cotizaciones")
+}
+
+model Mensaje {
+  id       Int      @id @default(autoincrement())
+  nombre   String   @db.VarChar(100)
+  apellido String?  @db.VarChar(100)
+  correo   String   @db.VarChar(150)
+  telefono String?  @db.VarChar(20)
+  asunto   String   @db.VarChar(150)
+  mensaje  String   @db.Text
+  creadoEn DateTime @default(now()) @map("creado_en")
+
+  @@map("mensajes")
+}
+
+model Auditoria {
+  id           Int      @id @default(autoincrement())
+  actorId      Int?     @map("actor_id")
+  accion       String   @db.VarChar(80)
+  entidad      String   @db.VarChar(80)
+  entidadId    Int?     @map("entidad_id")
+  datosAntes   String?  @map("datos_antes") @db.Text
+  datosDespues String?  @map("datos_despues") @db.Text
+  creadoEn     DateTime @default(now()) @map("creado_en")
+
+  @@index([entidad, entidadId])
+  @@map("auditoria")
 }

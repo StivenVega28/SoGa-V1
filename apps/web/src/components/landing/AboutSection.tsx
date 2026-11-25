@@ -5,7 +5,7 @@ const VALUES = [
   {
     icon: ShieldCheck,
     title: 'Confiabilidad',
-    text: 'Equipos certificados y procesos de suministro verificables de principio a fin.',
+    text: 'Productos certificados y procesos de suministro verificables de principio a fin.',
   },
   {
     icon: Compass,
@@ -40,9 +40,11 @@ export function AboutSection() {
 
             <div className="mt-4 max-w-xl space-y-4 text-[14px] leading-relaxed text-muted-foreground">
               <p>
-                Somos una empresa colombiana dedicada a la seguridad electrónica, el hogar
-                inteligente y la tecnología para empresas y personas. Integramos equipamiento,
-                asesoría técnica e instalación en una sola operación.
+                Somos una empresa Santandereana con 10 años de
+                experiencia dedicada al Diseño, fabricación, instalación
+                optimización de espacios tales como: Oficinas, locales
+                comerciales, aulas de clase, viviendas, fabricación y venta de
+                sillas ergonómicas.
               </p>
               <p>
                 Trabajamos con proveedores certificados y mantenemos trazabilidad sobre cada
@@ -56,8 +58,6 @@ export function AboutSection() {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-2">
-              <Badge variant="entry">Seguridad electrónica</Badge>
-              <Badge variant="neutral">Hogar inteligente</Badge>
               <Badge variant="neutral">Conectividad</Badge>
               <Badge variant="outline">Despacho nacional</Badge>
             </div>

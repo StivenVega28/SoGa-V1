@@ -7,14 +7,14 @@ export class ContactService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateContactDto): Promise<void> {
-    await this.prisma.message.create({
+    await this.prisma.mensaje.create({
       data: {
-        firstName: dto.nombre.trim(),
-        lastName: dto.apellido?.trim() || null,
-        email: dto.correo.trim().toLowerCase(),
-        phone: dto.telefono?.trim() || null,
-        subject: dto.asunto.trim(),
-        message: dto.mensaje.trim(),
+        nombre: dto.nombre.trim(),
+        apellido: dto.apellido?.trim() || null,
+        correo: dto.correo.trim().toLowerCase(),
+        telefono: dto.telefono?.trim() || null,
+        asunto: dto.asunto.trim(),
+        mensaje: dto.mensaje.trim(),
       },
     });
   }

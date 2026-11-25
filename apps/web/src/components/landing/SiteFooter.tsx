@@ -16,8 +16,7 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-3 max-w-sm text-[12px] leading-relaxed text-muted-foreground">
-              Seguridad electrónica, hogar inteligente y tecnología para empresas y personas. NIT
-              901.712.788-9.
+              Venta, reparación y mantenimiento de muebles para oficina y hogar. NIT 901.712.788-9.
             </p>
           </div>
 

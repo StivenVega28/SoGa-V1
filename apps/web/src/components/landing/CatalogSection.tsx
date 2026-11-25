@@ -6,20 +6,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getCatalogo } from '@/lib/api';
 import { FALLBACK_CATALOG } from '@/lib/fallbackCatalog';
 import type { Producto } from '@/lib/types';
-import { cn, formatCOP } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { ProductDetailDialog } from './ProductDetailDialog';
 
-const CATEGORIES = ['Todas', 'Seguridad', 'Hogar', 'Tecnología'];
+const CATEGORIES = ['Todas', 'Sillas'];
 
-function ProductCard({ product }: { product: Producto }) {
+function ProductCard({ product, onSelect }: { product: Producto; onSelect: () => void }) {
   return (
-    <article className="group relative flex flex-col rounded-lg border border-border/60 bg-card transition-colors hover:border-border">
+    <article className="group relative flex flex-col rounded-lg border border-border/60 bg-card transition-colors hover:border-primary/40">
       <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg border-b border-border/60 bg-secondary/40">
-        {product.imagen ? (
+        {product.imagenes[0] ? (
           <img
-            src={product.imagen}
+            src={product.imagenes[0]}
             alt={product.nombre}
             loading="lazy"
-            className="size-full object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
+            className="size-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex size-full items-center justify-center">
@@ -29,6 +30,11 @@ function ProductCard({ product }: { product: Producto }) {
         <Badge variant="neutral" className="absolute left-3 top-3">
           {product.categoria}
         </Badge>
+        {product.destacado && (
+          <Badge variant="entry" className="absolute right-3 top-3">
+            Destacado
+          </Badge>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -37,22 +43,23 @@ function ProductCard({ product }: { product: Producto }) {
           {product.descripcion}
         </p>
 
-        <div className="mt-auto flex items-end justify-between pt-4">
-          <div>
-            <span className="block text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-              Precio unitario
-            </span>
-            <span className="num text-[15px] font-semibold">{formatCOP(product.precio)}</span>
-          </div>
-          <a
-            href="#contacto"
-            className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-[12px] font-medium text-primary opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-          >
-            Cotizar
-            <ArrowUpRight className="size-3.5" />
-          </a>
+        <div className="mt-auto flex items-center justify-between border-t border-border/50 pt-3">
+          <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            Ver detalle
+          </span>
+          <span className="inline-flex items-center gap-1 text-[12px] font-medium text-primary">
+            Ver ficha
+            <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </span>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-label={`Ver detalle de ${product.nombre}`}
+        className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      />
     </article>
   );
 }
@@ -65,9 +72,9 @@ function CatalogSkeleton() {
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-full" />
         <Skeleton className="h-3 w-2/3" />
-        <div className="flex items-end justify-between pt-3">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-4 w-12" />
+        <div className="flex items-end justify-between pb-1 pt-3">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-14" />
         </div>
       </div>
     </article>
@@ -76,6 +83,7 @@ function CatalogSkeleton() {
 
 export function CatalogSection() {
   const [category, setCategory] = useState('Todas');
+  const [selected, setSelected] = useState<Producto | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ['catalogo'],
     queryFn: getCatalogo,
@@ -96,11 +104,10 @@ export function CatalogSection() {
           <div>
             <p className="eyebrow">Catálogo</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tightest sm:text-3xl">
-              Equipamiento listo para despacho
+              Nuestros productos
             </h2>
             <p className="mt-2 max-w-lg text-[14px] text-muted-foreground">
-              Precios en pesos colombianos. Disponibilidad sujeta al kardex de inventario en tiempo
-              real.
+              Sillas para oficina y hogar. Entrega, instalación y mantenimiento en toda Colombia.
             </p>
           </div>
 
@@ -125,7 +132,13 @@ export function CatalogSection() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => <CatalogSkeleton key={i} />)
-            : filtered.map((product) => <ProductCard key={product.id} product={product} />)}
+            : filtered.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onSelect={() => setSelected(product)}
+                />
+              ))}
         </div>
 
         {!isLoading && filtered.length === 0 && (
@@ -134,6 +147,14 @@ export function CatalogSection() {
           </div>
         )}
       </div>
+
+      <ProductDetailDialog
+        product={selected}
+        open={selected !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelected(null);
+        }}
+      />
     </section>
   );
 }

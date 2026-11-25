@@ -51,8 +51,8 @@ export function QuoteSection() {
             Solicita tu cotización
           </h2>
           <p className="mt-3 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-            Cuéntanos qué necesitas proteger o conectar. Un asesor revisará tu caso y responderá con
-            una propuesta técnica y comercial detallada.
+            Cuéntanos si necesitas comprar, reparar o hacerle mantenimiento a un mueble. Un asesor
+            revisará tu caso y responderá con una propuesta a la medida.
           </p>
 
           <dl className="mt-8 divide-y divide-border/60 border-y border-border/60">
@@ -60,7 +60,7 @@ export function QuoteSection() {
               { k: 'Razón social', v: 'Soluciones Garantizadas PS S.A.S.' },
               { k: 'NIT', v: '901.712.788-9' },
               { k: 'Correo comercial', v: 'comercial@solucionesgarantizadas.com' },
-              { k: 'Cobertura', v: 'Colombia · despacho nacional' },
+              { k: 'Cobertura', v: 'Colombia · entrega nacional' },
             ].map((row) => (
               <div key={row.k} className="flex items-center justify-between gap-4 py-2.5">
                 <dt className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
@@ -137,7 +137,7 @@ export function QuoteSection() {
                   id="asunto"
                   value={form.asunto}
                   onChange={(e) => update('asunto', e.target.value)}
-                  placeholder="Cotización de videovigilancia para bodega"
+                  placeholder="Cotización de sillas para sala de juntas"
                   required
                 />
               </div>
@@ -148,7 +148,7 @@ export function QuoteSection() {
                   id="mensaje"
                   value={form.mensaje}
                   onChange={(e) => update('mensaje', e.target.value)}
-                  placeholder="Describe el inmueble, cantidad de puntos y plazos."
+                  placeholder="Describe el mueble, cantidad, medidas y ciudad."
                   required
                 />
               </div>

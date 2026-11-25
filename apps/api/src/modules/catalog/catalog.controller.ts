@@ -1,6 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
+import { Publico } from '../auth/decorators/publico.decorator';
 import { CatalogService } from './catalog.service';
 
+@Publico()
 @Controller()
 export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDestacado } from '@/lib/api';
 import { FALLBACK_CATALOG } from '@/lib/fallbackCatalog';
-import { formatCOP } from '@/lib/utils';
 
 export function FeaturedProduct() {
   const { data, isLoading } = useQuery({
@@ -14,7 +13,7 @@ export function FeaturedProduct() {
     retry: 1,
   });
 
-  const product = data?.data ?? FALLBACK_CATALOG[1];
+  const product = data?.data ?? FALLBACK_CATALOG[0];
 
   return (
     <section id="destacado" className="border-b border-border/60 bg-surface/60">
@@ -34,17 +33,16 @@ export function FeaturedProduct() {
                 {product.nombre}
               </h2>
               <p className="mt-3 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-                {product.descripcion} Instalación profesional, configuración de la app y capacitación
-                de uso incluidas en el despacho nacional.
+                {product.descripcion}
               </p>
             </>
           )}
 
           <ul className="mt-6 space-y-2.5">
             {[
-              'Instalación y puesta en marcha',
-              'Soporte técnico y monitoreo',
-              'Garantía respaldada por proveedor',
+              'Tapicería y estructura de alta resistencia',
+              'Entrega e instalación en oficina u hogar',
+              'Reparación y mantenimiento posventa',
             ].map((item) => (
               <li key={item} className="flex items-center gap-2.5 text-[13px]">
                 <ShieldCheck className="size-4 shrink-0 text-primary" />
@@ -54,17 +52,14 @@ export function FeaturedProduct() {
           </ul>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <div className="rounded-md border border-border/60 bg-card px-4 py-2">
-              <span className="block text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                Desde
-              </span>
-              <span className="num text-lg font-semibold">{formatCOP(product.precio)}</span>
-            </div>
             <Button asChild>
               <a href="#contacto">
-                Solicitar este producto
+                Solicitar cotización
                 <ArrowRight className="size-4" />
               </a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="#productos">Ver todo el catálogo</a>
             </Button>
           </div>
         </div>
@@ -73,16 +68,16 @@ export function FeaturedProduct() {
           <div className="absolute inset-0 grid-lines opacity-[0.25]" />
           <div className="relative">
             {isLoading ? (
-              <Skeleton className="size-56 rounded-lg" />
+              <Skeleton className="size-64 rounded-lg" />
             ) : (
               <img
-                src={product.imagen ?? ''}
+                src={product.imagenes[0] ?? ''}
                 alt={product.nombre}
-                className="size-56 object-contain drop-shadow-none"
+                className="size-64 object-contain drop-shadow-none sm:size-72"
               />
             )}
             <Badge variant="entry" className="absolute -right-2 top-0">
-              Disponible
+              Destacado
             </Badge>
           </div>
         </div>
