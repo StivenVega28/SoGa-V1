@@ -1,3 +1,66 @@
+CAMBIOS REALIZADOS
+
+SoGa-V1/
+├── apps/
+│   ├── api/
+│   │   └── src/
+│   │       ├── app.module.ts                          ✏️
+│   │       └── modules/
+│   │           ├── auth/                              (sin cambios)
+│   │           ├── catalog/                           (sin cambios)
+│   │           ├── clientes/                          (sin cambios)
+│   │           ├── contact/                           (sin cambios)
+│   │           ├── productos/                         (sin cambios)
+│   │           ├── proveedores/                       (sin cambios)
+│   │           └── usuarios/                          🆕 CARPETA NUEVA
+│   │               ├── usuarios.module.ts             🆕
+│   │               ├── usuarios.controller.ts         🆕
+│   │               ├── usuarios.service.ts            🆕
+│   │               ├── roles.controller.ts            🆕
+│   │               └── dto/
+│   │                   └── usuario.dto.ts             🆕
+│   │
+│   └── web/
+│       └── src/
+│           ├── App.tsx                                ✏️
+│           ├── lib/
+│           │   ├── api.ts                             ✏️
+│           │   └── types.ts                           ✏️
+│           ├── pages/
+│           │   ├── AdminInicioPage.tsx                (sin cambios)
+│           │   ├── AdminProductosPage.tsx             (sin cambios)
+│           │   ├── AdminProveedoresPage.tsx           (sin cambios)
+│           │   ├── AdminClientesPage.tsx              (sin cambios)
+│           │   └── AdminUsuariosPage.tsx              🆕
+│           └── components/
+│               └── admin/
+│                   ├── AdminLayout.tsx                ✏️
+│                   ├── RutaProtegida.tsx              (sin cambios)
+│                   ├── ProductoFormDialog.tsx         (sin cambios)
+│                   ├── ProveedorFormDialog.tsx        (sin cambios)
+│                   ├── ClienteFormDialog.tsx          (sin cambios)
+│                   ├── UsuarioFormDialog.tsx          🆕
+│                   └── RestablecerContrasenaDialog.tsx 🆕
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # SoGa — Soluciones Garantizadas PS S.A.S.
 
 ERP/CRM ligero y landing corporativa para una empresa de venta, reparación y mantenimiento de
