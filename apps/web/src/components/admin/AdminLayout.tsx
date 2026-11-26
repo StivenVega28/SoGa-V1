@@ -5,6 +5,7 @@ import {
   ExternalLink,
   FileText,
   LayoutDashboard,
+  Lock,
   LogOut,
   Package,
   Receipt,
@@ -19,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/landing/ThemeToggle';
 import { cerrarSesion, obtenerPerfil } from '@/lib/api';
+import { tienePermiso } from '@/lib/permisos';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -27,19 +29,20 @@ interface NavItem {
   icon: LucideIcon;
   end?: boolean;
   pronto?: boolean;
-  soloAdmin?: boolean;
+  permiso?: string;
 }
 
 const NAV: NavItem[] = [
   { to: '/admin', label: 'Inicio', icon: LayoutDashboard, end: true },
-  { to: '/admin/productos', label: 'Productos', icon: Package },
-  { to: '/admin/proveedores', label: 'Proveedores', icon: Truck },
-  { to: '/admin/clientes', label: 'Clientes', icon: Users },
-  { to: '/admin/usuarios', label: 'Usuarios', icon: UserCog, soloAdmin: true },
-  { to: '/admin/compras', label: 'Compras', icon: ShoppingCart, pronto: true },
-  { to: '/admin/inventario', label: 'Inventario', icon: Boxes, pronto: true },
-  { to: '/admin/ventas', label: 'Ventas', icon: Receipt, pronto: true },
-  { to: '/admin/cotizaciones', label: 'Cotizaciones', icon: FileText, pronto: true },
+  { to: '/admin/productos', label: 'Productos', icon: Package, permiso: 'productos' },
+  { to: '/admin/proveedores', label: 'Proveedores', icon: Truck, permiso: 'proveedores' },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users, permiso: 'clientes' },
+  { to: '/admin/usuarios', label: 'Usuarios', icon: UserCog, permiso: 'usuarios' },
+  { to: '/admin/roles', label: 'Roles', icon: Lock, permiso: 'usuarios' },
+  { to: '/admin/compras', label: 'Compras', icon: ShoppingCart, permiso: 'compras' },
+  { to: '/admin/inventario', label: 'Inventario', icon: Boxes, permiso: 'inventario' },
+  { to: '/admin/ventas', label: 'Ventas', icon: Receipt, permiso: 'ventas' },
+  { to: '/admin/cotizaciones', label: 'Cotizaciones', icon: FileText, permiso: 'cotizaciones', pronto: true },
 ];
 
 export function AdminLayout() {
@@ -47,7 +50,7 @@ export function AdminLayout() {
   const queryClient = useQueryClient();
   const { data } = useQuery({ queryKey: ['perfil'], queryFn: obtenerPerfil, staleTime: 60_000 });
   const usuario = data?.usuario;
-  const items = NAV.filter((item) => !item.soloAdmin || usuario?.rol === 'Administrador');
+  const items = NAV.filter((item) => !item.permiso || tienePermiso(usuario?.permisos, item.permiso));
 
   async function salir() {
     try {

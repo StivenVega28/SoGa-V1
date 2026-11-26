@@ -56,26 +56,9 @@ export interface UsuarioSalida {
   actualizadoEn: Date;
 }
 
-export interface RolSalida {
-  id: number;
-  nombre: string;
-  descripcion: string;
-}
-
 @Injectable()
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async listarRoles(): Promise<RolSalida[]> {
-    return this.prisma.rol.findMany({
-      select: {
-        id: true,
-        nombre: true,
-        descripcion: true,
-      },
-      orderBy: { id: 'asc' },
-    });
-  }
 
   async listar(query: ListarUsuariosQuery) {
     const pagina = query.pagina ?? 1;
@@ -234,6 +217,11 @@ export class UsuariosService {
     }
   }
 
+  /**
+   * Reemplaza la contraseña del usuario y cierra todas sus sesiones activas.
+   * La contraseña vive en `cuentas` (proveedor `credential`), el mismo esquema
+   * que usa Better Auth; no se guarda en la tabla `usuarios`.
+   */
   async restablecerContrasena(id: string, dto: RestablecerContrasenaDto): Promise<void> {
     const usuario = await this.prisma.usuario.findFirst({
       where: { id, eliminadoEn: null },

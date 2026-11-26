@@ -15,6 +15,10 @@ import { AdminProductosPage } from '@/pages/AdminProductosPage';
 import { AdminProveedoresPage } from '@/pages/AdminProveedoresPage';
 import { AdminClientesPage } from '@/pages/AdminClientesPage';
 import { AdminUsuariosPage } from '@/pages/AdminUsuariosPage';
+import { AdminRolesPage } from '@/pages/AdminRolesPage';
+import { AdminComprasPage } from '@/pages/AdminComprasPage';
+import { AdminVentasPage } from '@/pages/AdminVentasPage';
+import { AdminInventarioPage } from '@/pages/AdminInventarioPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +61,10 @@ export default function App() {
               <Route path="proveedores" element={<AdminProveedoresPage />} />
               <Route path="clientes" element={<AdminClientesPage />} />
               <Route path="usuarios" element={<AdminUsuariosPage />} />
+              <Route path="roles" element={<AdminRolesPage />} />
+              <Route path="compras" element={<AdminComprasPage />} />
+              <Route path="ventas" element={<AdminVentasPage />} />
+              <Route path="inventario" element={<AdminInventarioPage />} />
             </Route>
           </Route>
 

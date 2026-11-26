@@ -1,27 +1,68 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Boxes, Package, Receipt, Truck } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ArrowRight, Boxes, Package, Receipt, ShoppingCart, Truck, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { listarCategorias, listarProductos, listarProveedores } from '@/lib/api';
+import {
+  listarCategorias,
+  listarCompras,
+  listarInventario,
+  listarProductos,
+  listarProveedores,
+  listarVentas,
+  obtenerPerfil,
+} from '@/lib/api';
+import { tienePermiso } from '@/lib/permisos';
+
+interface Tarjeta {
+  titulo: string;
+  valor: string | number;
+  detalle: string;
+  icon: LucideIcon;
+  to?: string;
+}
 
 export function AdminInicioPage() {
+  const { data: perfil } = useQuery({ queryKey: ['perfil'], queryFn: obtenerPerfil });
+  const permisos = perfil?.usuario?.permisos ?? null;
+
+  const puedeProductos = tienePermiso(permisos, 'productos');
+  const puedeProveedores = tienePermiso(permisos, 'proveedores');
+  const puedeCompras = tienePermiso(permisos, 'compras');
+  const puedeVentas = tienePermiso(permisos, 'ventas');
+  const puedeInventario = tienePermiso(permisos, 'inventario');
+
   const { data: productos } = useQuery({
     queryKey: ['productos', 'resumen'],
     queryFn: () => listarProductos({ porPagina: 1 }),
+    enabled: puedeProductos,
   });
-
   const { data: categorias } = useQuery({
     queryKey: ['categorias'],
     queryFn: listarCategorias,
+    enabled: puedeProductos,
   });
-
   const { data: proveedores } = useQuery({
     queryKey: ['proveedores', 'resumen'],
     queryFn: () => listarProveedores({ porPagina: 1 }),
+    enabled: puedeProveedores,
+  });
+  const { data: compras } = useQuery({
+    queryKey: ['compras', 'resumen'],
+    queryFn: () => listarCompras({ porPagina: 1 }),
+    enabled: puedeCompras,
+  });
+  const { data: ventas } = useQuery({
+    queryKey: ['ventas', 'resumen'],
+    queryFn: () => listarVentas({ porPagina: 1 }),
+    enabled: puedeVentas,
+  });
+  const { data: inventario } = useQuery({
+    queryKey: ['inventario', 'resumen'],
+    queryFn: () => listarInventario({ porPagina: 1 }),
+    enabled: puedeInventario,
   });
 
-  const tarjetas = [
+  const tarjetas: Tarjeta[] = [
     {
       titulo: 'Productos',
       valor: productos?.meta.total ?? '—',
@@ -43,12 +84,33 @@ export function AdminInicioPage() {
       to: '/admin/proveedores',
     },
     {
-      titulo: 'Ventas',
-      valor: '—',
-      detalle: 'módulo pendiente',
-      icon: Receipt,
+      titulo: 'Compras',
+      valor: compras?.meta.total ?? '—',
+      detalle: 'entradas al inventario',
+      icon: ShoppingCart,
+      to: '/admin/compras',
     },
-  ];
+    {
+      titulo: 'Ventas',
+      valor: ventas?.meta.total ?? '—',
+      detalle: 'salidas confirmadas',
+      icon: Receipt,
+      to: '/admin/ventas',
+    },
+    {
+      titulo: 'Inventario',
+      valor: inventario?.meta.total ?? '—',
+      detalle: 'productos con stock',
+      icon: Boxes,
+      to: '/admin/inventario',
+    },
+  ].filter((tarjeta) => {
+    if (tarjeta.titulo === 'Productos' || tarjeta.titulo === 'Categorías') return puedeProductos;
+    if (tarjeta.titulo === 'Proveedores') return puedeProveedores;
+    if (tarjeta.titulo === 'Compras') return puedeCompras;
+    if (tarjeta.titulo === 'Ventas') return puedeVentas;
+    return puedeInventario;
+  });
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -60,15 +122,17 @@ export function AdminInicioPage() {
             Estado actual del catálogo y accesos rápidos a los módulos.
           </p>
         </div>
-        <Button asChild size="sm">
-          <Link to="/admin/productos">
-            Gestionar productos
-            <ArrowRight className="size-3.5" />
-          </Link>
-        </Button>
+        {puedeProductos && (
+          <Button asChild size="sm">
+            <Link to="/admin/productos">
+              Gestionar productos
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </Button>
+        )}
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {tarjetas.map((tarjeta) => {
           const contenido = (
             <>
@@ -76,11 +140,7 @@ export function AdminInicioPage() {
                 <span className="flex size-8 items-center justify-center rounded-md border border-border/60 bg-secondary/50">
                   <tarjeta.icon className="size-4 text-primary" />
                 </span>
-                {tarjeta.to ? (
-                  <ArrowRight className="size-4 text-muted-foreground" />
-                ) : (
-                  <Badge variant="outline">Pronto</Badge>
-                )}
+                {tarjeta.to && <ArrowRight className="size-4 text-muted-foreground" />}
               </div>
               <p className="mt-4 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 {tarjeta.titulo}
@@ -99,7 +159,7 @@ export function AdminInicioPage() {
               {contenido}
             </Link>
           ) : (
-            <div key={tarjeta.titulo} className="rounded-lg border border-border/60 bg-card p-4 opacity-70">
+            <div key={tarjeta.titulo} className="rounded-lg border border-border/60 bg-card p-4">
               {contenido}
             </div>
           );
@@ -109,8 +169,8 @@ export function AdminInicioPage() {
       <div className="mt-6 rounded-lg border border-border/60 bg-card p-5">
         <h2 className="text-[14px] font-semibold">Siguientes módulos</h2>
         <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-muted-foreground">
-          Con el catálogo y las variantes listas, el siguiente paso es compras (entrada de kardex),
-          ventas con descuento de stock y el panel de usuarios y roles.
+          Con compras, ventas e inventario funcionando, el siguiente paso es el módulo de
+          cotizaciones y, más adelante, la auditoría y los permisos por módulo.
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Permisos } from '../auth/decorators/permisos.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CrearCategoriaDto } from './dto/producto.dto';
 import { ProductosService } from './productos.service';
@@ -8,7 +9,7 @@ export class CategoriasController {
   constructor(private readonly productos: ProductosService) {}
 
   @Get()
-  @Roles('Administrador', 'Vendedor', 'Consultor')
+  @Permisos('productos')
   async listar() {
     const data = await this.productos.listarCategorias();
     return { ok: true, data };

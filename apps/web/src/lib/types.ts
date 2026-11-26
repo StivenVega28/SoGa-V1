@@ -164,6 +164,14 @@ export interface Rol {
   id: number;
   nombre: string;
   descripcion: string;
+  permisos: string;
+  usuarios?: number;
+}
+
+export interface RolPayload {
+  nombre: string;
+  descripcion?: string;
+  permisos: string[];
 }
 
 export interface Usuario {
@@ -190,4 +198,120 @@ export interface UsuarioPayload {
   correo: string;
   rolId: number;
   contrasena?: string;
+}
+
+/* -------------------------------- Compras -------------------------------- */
+
+export interface CompraItem {
+  id: number;
+  productoId: number;
+  sku: string;
+  producto: string;
+  cantidad: number;
+  costoUnitario: string;
+  totalLinea: string;
+}
+
+export interface Compra {
+  id: number;
+  proveedor: { id: number; nombre: string };
+  total: string;
+  compradoEn: string;
+  creadoEn: string;
+  items: number;
+}
+
+export interface CompraDetalle extends Omit<Compra, 'items'> {
+  items: CompraItem[];
+}
+
+export interface CompraItemPayload {
+  productoId: number;
+  cantidad: number;
+  costoUnitario: string;
+}
+
+export interface CompraPayload {
+  proveedorId: number;
+  compradoEn?: string;
+  items: CompraItemPayload[];
+}
+
+/* --------------------------------- Ventas -------------------------------- */
+
+export interface VentaItem {
+  id: number;
+  productoId: number;
+  sku: string;
+  producto: string;
+  cantidad: number;
+  precioUnitario: string;
+  totalLinea: string;
+}
+
+export interface Venta {
+  id: number;
+  cliente: { id: number; nombre: string; apellido: string | null };
+  emitidaEn: string;
+  subtotal: string;
+  impuesto: string;
+  total: string;
+  estado: string;
+  items: number;
+}
+
+export interface VentaDetalle extends Omit<Venta, 'items'> {
+  notas: string | null;
+  items: VentaItem[];
+}
+
+export interface VentaItemPayload {
+  productoId: number;
+  cantidad: number;
+  precioUnitario?: string;
+}
+
+export interface VentaPayload {
+  clienteId: number;
+  emitidaEn?: string;
+  notas?: string;
+  items: VentaItemPayload[];
+}
+
+/* ------------------------------- Inventario ------------------------------- */
+
+export interface InventarioItem {
+  id: number;
+  sku: string;
+  nombre: string;
+  categoria: string;
+  proveedor: string | null;
+  unidad: string;
+  stock: number;
+  stockMinimo: number;
+  costo: string;
+  precio: string;
+  bajoMinimo: boolean;
+}
+
+export interface MovimientoInventario {
+  id: number;
+  tipo: 'ENTRADA' | 'SALIDA' | 'AJUSTE' | 'ANULACION';
+  cantidad: number;
+  costoUnitario: string | null;
+  tipoReferencia: string | null;
+  referenciaId: number | null;
+  nota: string | null;
+  ocurridoEn: string;
+}
+
+export interface Kardex {
+  producto: { id: number; nombre: string; sku: string };
+  movimientos: MovimientoInventario[];
+}
+
+export interface AjusteInventarioPayload {
+  productoId: number;
+  cantidad: number;
+  nota?: string;
 }

@@ -14,6 +14,14 @@ export class SesionGuard implements CanActivate {
     private readonly prisma: PrismaService,
   ) {}
 
+  /**
+   * Guard global: exige una sesión válida de Better Auth en todas las rutas,
+   * salvo las marcadas con `@Publico()`.
+   *
+   * Si la sesión es válida, carga el usuario con su rol (incluye `permisos`) y lo
+   * deja disponible en `request.usuario` para que `RolesGuard` y los controladores
+   * lo usen. Rechaza usuarios dados de baja (`eliminadoEn != null`).
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const esPublico = this.reflector.getAllAndOverride<boolean>(ES_PUBLICO, [
       context.getHandler(),
@@ -22,6 +30,7 @@ export class SesionGuard implements CanActivate {
     if (esPublico) return true;
 
     const request = context.switchToHttp().getRequest<Request>();
+    // Better Auth resuelve la sesión a partir de la cookie `httpOnly` de la petición.
     const sesion = await this.auth.auth.api.getSession({
       headers: fromNodeHeaders(request.headers),
     });
@@ -39,6 +48,7 @@ export class SesionGuard implements CanActivate {
       throw new UnauthorizedException('Usuario no habilitado.');
     }
 
+    // Expone el usuario y la sesión al resto de la petición (tipados en express.d.ts).
     request.usuario = usuario;
     request.sesion = sesion.session;
     return true;

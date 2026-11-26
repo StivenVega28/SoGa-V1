@@ -27,8 +27,8 @@ muebles. Monorepo con API REST y panel administrativo.
 | Entorno local | Docker Compose | MySQL 8.4 | Base de datos opcional en contenedor |
 
 > **Estado actual:** landing pública, autenticación con Better Auth, panel protegido y módulos de
-> productos (categorías y variantes), proveedores, clientes y usuarios (roles y restablecimiento de
-> contraseña). Inventario, compras, ventas y cotizaciones están pendientes.
+> productos (categorías y variantes), proveedores, clientes, usuarios, compras, ventas e inventario
+> (kardex con stock derivado). Cotizaciones está pendiente.
 >
 > **Aún no incluido:** Swagger, Pino, pruebas automatizadas, CI y `packages/shared`.
 
@@ -89,17 +89,23 @@ Luego aplica las migraciones:
 npm run prisma:deploy
 ```
 
-**Alternativa:** `database/SoGa.sql` es un snapshot de referencia con el esquema y datos de
-ejemplo. Si lo importas, dile a Prisma que la migración inicial ya está aplicada:
+**Alternativa:** `database/SoGa.sql` es un snapshot de referencia (generado con `mysqldump`) con el
+esquema y los datos de ejemplo. Si lo importas, marca todas las migraciones como aplicadas para que
+Prisma no intente recrear las tablas:
 
 ```powershell
 Get-Content -Raw -Encoding UTF8 ".\database\SoGa.sql" |
   & "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p --default-character-set=utf8mb4
-
-npx prisma migrate resolve --applied 20261125000000_init
 ```
 
-(Ese último comando se ejecuta dentro de `apps/api`.)
+Dentro de `apps/api`, basalea las migraciones (una por cada carpeta en `prisma/migrations`):
+
+```bash
+npx prisma migrate resolve --applied 20261125000000_init
+npx prisma migrate resolve --applied 20261125000100_auth
+npx prisma migrate resolve --applied 20261125000200_productos
+npx prisma migrate resolve --applied 20261126204545_compras_cabecera_detalle
+```
 
 Verifica que se creó:
 
@@ -252,7 +258,10 @@ SoGa V1/
 │   │       │   ├── productos/  # CRUD de productos, categorías y variantes
 │   │       │   ├── proveedores/ # CRUD de proveedores
 │   │       │   ├── clientes/   # CRUD de clientes
-│   │       │   └── usuarios/   # CRUD de usuarios, roles y contraseñas
+│   │       │   ├── usuarios/   # CRUD de usuarios, roles y contraseñas
+│   │       │   ├── compras/    # compras (cabecera + detalle) → entrada de kardex
+│   │       │   ├── ventas/     # ventas (cabecera + detalle) → salida de kardex
+│   │       │   └── inventario/ # stock derivado, kardex y ajustes
 │   │       └── prisma/         # PrismaService
 │   └── web/                    # React + Vite + Tailwind + shadcn/ui
 │       └── src/
@@ -260,7 +269,7 @@ SoGa V1/
 │           │   ├── admin/      # layout, ruta protegida, formulario de producto
 │           │   ├── landing/    # secciones de la landing
 │           │   └── ui/         # primitivos shadcn
-│           ├── pages/          # Login, panel, productos, clientes y usuarios
+│           ├── pages/          # Login, panel, productos, clientes, usuarios, compras, ventas e inventario
 │           ├── lib/            # api, tipos, utilidades
 │           └── styles/         # tokens "Precision Ledger"
 ├── database/
@@ -306,23 +315,31 @@ Para cambiarlas, define `ADMIN_PASSWORD` antes de ejecutar la semilla y vuelve a
 
 - **Better Auth** con email/contraseña y sesiones en BD (cookie `httpOnly`, `SameSite=Lax`).
 - El registro público está deshabilitado (`disableSignUp`): los usuarios internos se crean por seed
-  o por el futuro módulo de usuarios.
+  o por el módulo de usuarios.
 - `SesionGuard` global exige sesión en todas las rutas salvo las marcadas con `@Publico()`.
-- `RolesGuard` valida el rol declarado con `@Roles(...)`; sin rol asignado, deniega.
-- Roles del seed: `Administrador`, `Vendedor`, `Consultor`.
+- **Permisos por módulo**: cada rol guarda en `permisos` un listado de módulos a los que puede
+  acceder (separados por coma). El valor especial `todos` otorga acceso completo.
+  - Acceso de **lectura**: `@Permisos('modulo')` en las rutas `GET`.
+  - **Mutaciones**: `@Roles('Administrador')` (o `@Roles('Administrador', 'Vendedor')` en ventas y
+    clientes), validado por `RolesGuard`.
+- Módulos disponibles como permiso: `productos`, `proveedores`, `clientes`, `compras`, `ventas`,
+  `inventario`, `usuarios`, `cotizaciones`.
+- Roles del seed:
+  - `Administrador` → `todos`
+  - `Vendedor` → `ventas,cotizaciones,clientes,inventario`
+  - `Consultor` → `inventario,productos`
 
 Rutas públicas: landing, `GET /api/catalogo`, `GET /api/destacado` y `POST /api/contacto`.
-Todo lo demás responde `401` sin sesión.
+Todo lo demás responde `401` sin sesión, y sin el permiso del módulo responde `403`.
 
 ---
 
 ## 11. Qué falta (roadmap)
 
-1. **Panel admin** — completar compras, inventario, ventas y cotizaciones.
-2. **Kardex** — movimientos de inventario y stock derivado con bloqueo transaccional.
-3. **Compras** — cabecera + detalle, entrada de kardex y actualización de costo.
-4. **Usuarios y roles** — permisos por módulo y auditoría (el CRUD de usuarios ya está implementado).
-5. **Calidad** — `packages/shared`, tests, Swagger, Pino, CI.
+1. **Cotizaciones** — cabecera + detalle con conversión opcional a venta.
+2. **Anulaciones** — anular ventas/compras con movimiento inverso en el kardex.
+3. **Auditoría** — registro de cambios en las tablas principales.
+4. **Calidad** — `packages/shared`, tests, Swagger, Pino, CI.
 
 ---
 
@@ -454,3 +471,151 @@ Reemplaza el hash de la cuenta `credential` (la crea si no existe) y elimina tod
 - `POST /usuarios/:id/restaurar` reactiva un usuario dado de baja.
 - No puedes eliminar tu propio usuario ni quitarte tu propio rol de Administrador.
 - Se protege que siempre exista al menos un Administrador activo.
+
+---
+
+## 14. Módulos Compras, Ventas e Inventario
+
+### Modelo de inventario
+
+El stock **no se guarda en `productos`**: se deriva del kardex (`movimientos_inventario`). Cada
+operación de compra o venta registra un movimiento con su tipo:
+
+| Tipo | Efecto en stock | Origen |
+|---|---|---|
+| `ENTRADA` | suma | compra |
+| `SALIDA` | resta | venta |
+| `AJUSTE` | suma/resta (cantidad con signo) | ajuste manual |
+
+El stock de un producto es la suma algebraica de sus movimientos. Para evitar **sobreventa** bajo
+concurrencia, compras y ventas bloquean las filas de producto (`SELECT … FOR UPDATE`) dentro de una
+transacción antes de validar y crear los movimientos.
+
+### Módulo Compras
+
+**Archivos**
+
+    apps/api/src/modules/compras/{compras.controller.ts,compras.service.ts,compras.module.ts}
+    apps/api/src/modules/compras/dto/compra.dto.ts
+    apps/web/src/pages/AdminComprasPage.tsx
+    apps/web/src/components/admin/CompraFormDialog.tsx
+    apps/web/src/components/admin/CompraDetalleDialog.tsx
+
+**Endpoints** (prefijo `/api`)
+
+| Método | Ruta | Roles |
+|---|---|---|
+| GET | `/compras?buscar=&proveedorId=&pagina=&porPagina=` | Administrador, Vendedor, Consultor |
+| GET | `/compras/:id` | Administrador, Vendedor, Consultor |
+| POST | `/compras` | Administrador |
+
+**Comportamiento**
+
+- `Compra` es **cabecera** (`proveedor`, `total`, `comprado_en`) + `DetalleCompra` (producto, cantidad, costo unitario).
+- En una sola transacción se crean la compra, sus detalles y un movimiento `ENTRADA` por línea.
+- Se actualiza el **costo promedio ponderado** del producto: `(stock_anterior × costo_actual + cantidad × costo_nuevo) / nuevo_stock`.
+- Se rechazan productos repetidos en las líneas.
+
+**Ejemplo de alta**
+
+    POST /api/compras
+    {
+      "proveedorId": 1,
+      "items": [
+        { "productoId": 1, "cantidad": 10, "costoUnitario": "500000.00" }
+      ]
+    }
+
+### Módulo Ventas
+
+**Archivos**
+
+    apps/api/src/modules/ventas/{ventas.controller.ts,ventas.service.ts,ventas.module.ts}
+    apps/api/src/modules/ventas/dto/venta.dto.ts
+    apps/web/src/pages/AdminVentasPage.tsx
+    apps/web/src/components/admin/VentaFormDialog.tsx
+    apps/web/src/components/admin/VentaDetalleDialog.tsx
+
+**Endpoints** (prefijo `/api`)
+
+| Método | Ruta | Roles |
+|---|---|---|
+| GET | `/ventas?buscar=&clienteId=&estado=&pagina=&porPagina=` | Administrador, Vendedor, Consultor |
+| GET | `/ventas/:id` | Administrador, Vendedor, Consultor |
+| POST | `/ventas` | Administrador, Vendedor |
+
+**Comportamiento**
+
+- `Venta` es **cabecera** (`cliente`, `subtotal`, `impuesto`, `total`, `estado`) + `DetalleVenta`.
+- Se crea como `CONFIRMADA`: valida que haya stock suficiente por línea y descuenta de inmediato.
+- Si el stock es insuficiente devuelve `409` con el detalle del producto y la cantidad disponible.
+- `precioUnitario` es opcional por línea; si se omite, se usa el `precio` del producto.
+- El movimiento `SALIDA` guarda el `costoUnitario` del producto para el cálculo de costo de venta.
+
+### Módulo Inventario
+
+**Archivos**
+
+    apps/api/src/modules/inventario/{inventario.controller.ts,inventario.service.ts,inventario.module.ts}
+    apps/api/src/modules/inventario/dto/inventario.dto.ts
+    apps/web/src/pages/AdminInventarioPage.tsx
+    apps/web/src/components/admin/{KardexDialog.tsx,AjusteInventarioDialog.tsx}
+
+**Endpoints** (prefijo `/api`)
+
+| Método | Ruta | Roles |
+|---|---|---|
+| GET | `/inventario?buscar=&pagina=&porPagina=` | Administrador, Vendedor, Consultor |
+| GET | `/inventario/:id/movimientos` | Administrador, Vendedor, Consultor |
+| POST | `/inventario/ajuste` | Administrador |
+
+**Comportamiento**
+
+- `GET /inventario` lista productos activos con su `stock` derivado, `costo`, `precio` y la marca `bajoMinimo` (stock ≤ stock mínimo).
+- `GET /inventario/:id/movimientos` devuelve el kardex de un producto.
+- `POST /inventario/ajuste` registra un movimiento `AJUSTE` con cantidad con signo (positiva suma, negativa resta). No permite dejar el stock en negativo.
+
+> Nota: en estos tres módulos el acceso de **lectura** (`GET`) se valida con `@Permisos('modulo')` y
+> las **mutaciones** (`POST`/`PATCH`/`DELETE`) con `@Roles(...)`. La tabla anterior muestra los roles
+> del seed; un rol personalizado con el permiso del módulo también puede leerlo.
+
+---
+
+## 15. Módulo Roles y permisos
+
+### Descripción
+
+CRUD de roles con permisos estructurados por módulo. Cada rol guarda en `permisos` la lista de
+módulos a los que puede acceder, separados por coma (o el valor especial `todos`).
+
+**Archivos**
+
+    apps/api/src/modules/usuarios/roles.service.ts
+    apps/api/src/modules/usuarios/roles.controller.ts
+    apps/api/src/modules/usuarios/dto/rol.dto.ts
+    apps/api/src/modules/auth/permisos.constants.ts
+    apps/api/src/modules/auth/decorators/permisos.decorator.ts
+    apps/web/src/pages/AdminRolesPage.tsx
+    apps/web/src/components/admin/RolFormDialog.tsx
+
+**Endpoints** (prefijo `/api`)
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/roles` | Permiso `usuarios` |
+| POST | `/roles` | Rol `Administrador` |
+| PATCH | `/roles/:id` | Rol `Administrador` |
+| DELETE | `/roles/:id` | Rol `Administrador` |
+
+**Comportamiento**
+
+- `POST /roles` crea un rol con `nombre` (único), `descripcion` y `permisos` (arreglo de módulos).
+- Los permisos se validan contra el catálogo fijo (`productos`, `proveedores`, `clientes`,
+  `compras`, `ventas`, `inventario`, `usuarios`, `cotizaciones`).
+- No se puede eliminar el rol `Administrador` ni un rol que tenga usuarios asignados.
+- El menú lateral y el panel de inicio filtran los módulos según los permisos del usuario.
+
+**Categorías**
+
+En la página de productos se agregó un botón **"Nueva categoría"** que crea una categoría desde el
+panel (usa el endpoint `POST /api/categorias`, rol `Administrador`).

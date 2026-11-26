@@ -1,10 +1,16 @@
 import type {
+  AjusteInventarioPayload,
   CatalogoResponse,
   Categoria,
   Cliente,
   ClientePayload,
+  Compra,
+  CompraDetalle,
+  CompraPayload,
   ContactPayload,
   FeaturedResponse,
+  InventarioItem,
+  Kardex,
   MetaPaginacion,
   PerfilResponse,
   ProductoAdmin,
@@ -12,8 +18,12 @@ import type {
   Proveedor,
   ProveedorPayload,
   Rol,
+  RolPayload,
   Usuario,
   UsuarioPayload,
+  Venta,
+  VentaDetalle,
+  VentaPayload,
 } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '/api';
@@ -222,6 +232,24 @@ export function listarRoles() {
   return request<{ ok: boolean; data: Rol[] }>('/roles');
 }
 
+export function crearRol(payload: RolPayload) {
+  return request<{ ok: boolean; data: Rol }>('/roles', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function actualizarRol(id: number, payload: Partial<RolPayload>) {
+  return request<{ ok: boolean; data: Rol }>(`/roles/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function eliminarRol(id: number) {
+  return request<{ ok: boolean }>(`/roles/${id}`, { method: 'DELETE' });
+}
+
 export function crearUsuario(payload: UsuarioPayload) {
   return request<{ ok: boolean; data: Usuario }>('/usuarios', {
     method: 'POST',
@@ -250,5 +278,86 @@ export function eliminarUsuario(id: string) {
 export function restaurarUsuario(id: string) {
   return request<{ ok: boolean; data: Usuario }>(`/usuarios/${id}/restaurar`, {
     method: 'POST',
+  });
+}
+
+/* --------------------------------- Compras -------------------------------- */
+
+export interface FiltrosCompras {
+  buscar?: string;
+  proveedorId?: number;
+  pagina?: number;
+  porPagina?: number;
+}
+
+export function listarCompras(filtros: FiltrosCompras = {}) {
+  const query = construirQuery(filtros);
+  return request<{ ok: boolean; data: Compra[]; meta: MetaPaginacion }>(
+    `/compras${query ? `?${query}` : ''}`,
+  );
+}
+
+export function obtenerCompra(id: number) {
+  return request<{ ok: boolean; data: CompraDetalle }>(`/compras/${id}`);
+}
+
+export function crearCompra(payload: CompraPayload) {
+  return request<{ ok: boolean; data: CompraDetalle }>('/compras', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/* --------------------------------- Ventas --------------------------------- */
+
+export interface FiltrosVentas {
+  buscar?: string;
+  clienteId?: number;
+  estado?: 'BORRADOR' | 'CONFIRMADA' | 'ANULADA';
+  pagina?: number;
+  porPagina?: number;
+}
+
+export function listarVentas(filtros: FiltrosVentas = {}) {
+  const query = construirQuery(filtros);
+  return request<{ ok: boolean; data: Venta[]; meta: MetaPaginacion }>(
+    `/ventas${query ? `?${query}` : ''}`,
+  );
+}
+
+export function obtenerVenta(id: number) {
+  return request<{ ok: boolean; data: VentaDetalle }>(`/ventas/${id}`);
+}
+
+export function crearVenta(payload: VentaPayload) {
+  return request<{ ok: boolean; data: VentaDetalle }>('/ventas', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/* ------------------------------- Inventario ------------------------------- */
+
+export interface FiltrosInventario {
+  buscar?: string;
+  pagina?: number;
+  porPagina?: number;
+}
+
+export function listarInventario(filtros: FiltrosInventario = {}) {
+  const query = construirQuery(filtros);
+  return request<{ ok: boolean; data: InventarioItem[]; meta: MetaPaginacion }>(
+    `/inventario${query ? `?${query}` : ''}`,
+  );
+}
+
+export function kardexInventario(productoId: number) {
+  return request<{ ok: boolean; data: Kardex }>(`/inventario/${productoId}/movimientos`);
+}
+
+export function ajustarInventario(payload: AjusteInventarioPayload) {
+  return request<{ ok: boolean; data: InventarioItem }>('/inventario/ajuste', {
+    method: 'POST',
+    body: JSON.stringify(payload),
   });
 }

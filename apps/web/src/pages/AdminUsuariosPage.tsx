@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RestablecerContrasenaDialog } from '@/components/admin/RestablecerContrasenaDialog';
 import { UsuarioFormDialog } from '@/components/admin/UsuarioFormDialog';
 import { ApiError, eliminarUsuario, listarRoles, listarUsuarios, obtenerPerfil, restaurarUsuario } from '@/lib/api';
+import { tienePermiso } from '@/lib/permisos';
 import type { Usuario } from '@/lib/types';
 
 const POR_PAGINA = 10;
@@ -68,6 +69,7 @@ export function AdminUsuariosPage() {
   const roles = rolesData?.data ?? [];
   const miId = perfil?.usuario?.id;
   const esAdministrador = perfil?.usuario?.rol === 'Administrador';
+  const puedeVer = tienePermiso(perfil?.usuario?.permisos, 'usuarios');
 
   function refrescar() {
     void queryClient.invalidateQueries({ queryKey: ['usuarios'] });
@@ -118,12 +120,12 @@ export function AdminUsuariosPage() {
     }
   }
 
-  if (perfil && !esAdministrador) {
+  if (perfil && !puedeVer) {
     return (
       <div className="mx-auto max-w-3xl rounded-lg border border-border/60 bg-card p-8 text-center">
         <h1 className="text-lg font-semibold">Sin permisos</h1>
         <p className="mt-2 text-[13px] text-muted-foreground">
-          Solo un Administrador puede gestionar los usuarios del sistema.
+          No tienes permisos para ver los usuarios del sistema.
         </p>
       </div>
     );
@@ -139,10 +141,12 @@ export function AdminUsuariosPage() {
             Cuentas de acceso, roles y estado de los usuarios del sistema.
           </p>
         </div>
-        <Button onClick={abrirNuevo} size="sm">
-          <Plus className="size-4" />
-          Nuevo usuario
-        </Button>
+        {esAdministrador && (
+          <Button onClick={abrirNuevo} size="sm">
+            <Plus className="size-4" />
+            Nuevo usuario
+          </Button>
+        )}
       </div>
 
       <form
@@ -276,8 +280,9 @@ export function AdminUsuariosPage() {
                       )}
                     </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-end gap-1">
-                        {procesandoId === usuario.id && (
+                      {esAdministrador ? (
+                        <div className="flex items-center justify-end gap-1">
+                          {procesandoId === usuario.id && (
                           <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
                         )}
                         {usuario.eliminadoEn ? (
@@ -326,7 +331,10 @@ export function AdminUsuariosPage() {
                             </Button>
                           </>
                         )}
-                      </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -19,8 +19,8 @@ type ProductoSemilla = {
 };
 
 const imagenesSilla = (slug: string): string[] => [
-  `/img/products/silla-${slug}-1.svg`,
-  `/img/products/silla-${slug}-2.svg`,
+  `/img/products/silla-${slug}-1.png`,
+  `/img/products/silla-${slug}-2.png`,
 ];
 
 const PRODUCTOS: ProductoSemilla[] = [
@@ -102,7 +102,10 @@ const PRODUCTOS: ProductoSemilla[] = [
 async function main() {
   const rol = await prisma.rol.upsert({
     where: { nombre: 'Administrador' },
-    update: {},
+    update: {
+      permisos: 'todos',
+      descripcion: 'Acceso total al sistema y a todos los módulos.',
+    },
     create: {
       nombre: 'Administrador',
       permisos: 'todos',
@@ -112,17 +115,23 @@ async function main() {
 
   await prisma.rol.upsert({
     where: { nombre: 'Vendedor' },
-    update: {},
+    update: {
+      permisos: 'ventas,cotizaciones,clientes,inventario',
+      descripcion: 'Gestiona clientes, ventas y cotizaciones.',
+    },
     create: {
       nombre: 'Vendedor',
-      permisos: 'ventas,cotizaciones,clientes',
+      permisos: 'ventas,cotizaciones,clientes,inventario',
       descripcion: 'Gestiona clientes, ventas y cotizaciones.',
     },
   });
 
   await prisma.rol.upsert({
     where: { nombre: 'Consultor' },
-    update: {},
+    update: {
+      permisos: 'inventario,productos',
+      descripcion: 'Puede consultar inventario y productos.',
+    },
     create: {
       nombre: 'Consultor',
       permisos: 'inventario,productos',

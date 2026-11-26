@@ -200,13 +200,23 @@ export class ProductosService {
     return this.toSalida(producto);
   }
 
+  /**
+   * Baja lógica de un producto. Si tiene compras, movimientos de inventario o
+   * líneas en ventas/cotizaciones, se rechaza (mejor inactivarlo) para no romper
+   * el historial del kardex ni los documentos.
+   */
   async eliminar(id: number): Promise<void> {
     const producto = await this.prisma.producto.findFirst({
       where: { id, eliminadoEn: null },
       select: {
         id: true,
         _count: {
-          select: { compras: true, movimientos: true, itemsVenta: true, itemsCotizacion: true },
+          select: {
+            detallesCompra: true,
+            movimientos: true,
+            itemsVenta: true,
+            itemsCotizacion: true,
+          },
         },
       },
     });
@@ -214,7 +224,7 @@ export class ProductosService {
     if (!producto) throw new NotFoundException('Producto no encontrado.');
 
     const referencias =
-      producto._count.compras +
+      producto._count.detallesCompra +
       producto._count.movimientos +
       producto._count.itemsVenta +
       producto._count.itemsCotizacion;

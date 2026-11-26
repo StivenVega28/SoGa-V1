@@ -11,6 +11,9 @@ import { ProductosModule } from './modules/productos/productos.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { ClientesModule } from './modules/clientes/clientes.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
+import { ComprasModule } from './modules/compras/compras.module';
+import { VentasModule } from './modules/ventas/ventas.module';
+import { InventarioModule } from './modules/inventario/inventario.module';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     ProveedoresModule,
     ClientesModule,
     UsuariosModule,
+    ComprasModule,
+    VentasModule,
+    InventarioModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: SesionGuard },

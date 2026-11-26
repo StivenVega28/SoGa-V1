@@ -9,6 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { Permisos } from '../auth/decorators/permisos.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import {
   ActualizarProductoDto,
@@ -23,14 +24,14 @@ export class ProductosController {
   constructor(private readonly productos: ProductosService) {}
 
   @Get()
-  @Roles('Administrador', 'Vendedor', 'Consultor')
+  @Permisos('productos')
   async listar(@Query() query: ListarProductosQuery) {
     const { data, meta } = await this.productos.listar(query);
     return { ok: true, data, meta };
   }
 
   @Get(':id')
-  @Roles('Administrador', 'Vendedor', 'Consultor')
+  @Permisos('productos')
   async obtener(@Param('id', ParseIntPipe) id: number) {
     const data = await this.productos.obtener(id);
     return { ok: true, data };

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CategoriaFormDialog } from '@/components/admin/CategoriaFormDialog';
 import { ProductoFormDialog } from '@/components/admin/ProductoFormDialog';
 import {
   ApiError,
@@ -30,6 +31,7 @@ export function AdminProductosPage() {
 
   const [formAbierto, setFormAbierto] = useState(false);
   const [productoEditando, setProductoEditando] = useState<ProductoAdmin | null>(null);
+  const [categoriaAbierto, setCategoriaAbierto] = useState(false);
 
   const [accionError, setAccionError] = useState<string | null>(null);
   const [procesandoId, setProcesandoId] = useState<number | null>(null);
@@ -116,10 +118,16 @@ export function AdminProductosPage() {
             Referencias, precios, costos y variantes del catálogo.
           </p>
         </div>
-        <Button onClick={abrirNuevo} size="sm">
-          <Plus className="size-4" />
-          Nuevo producto
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setCategoriaAbierto(true)} variant="outline" size="sm">
+            <Plus className="size-4" />
+            Nueva categoría
+          </Button>
+          <Button onClick={abrirNuevo} size="sm">
+            <Plus className="size-4" />
+            Nuevo producto
+          </Button>
+        </div>
       </div>
 
       <form
@@ -342,6 +350,11 @@ export function AdminProductosPage() {
         producto={productoEditando}
         categorias={categorias?.data ?? []}
         proveedores={proveedores?.data ?? []}
+        onGuardado={refrescar}
+      />
+      <CategoriaFormDialog
+        abierto={categoriaAbierto}
+        onAbiertoChange={setCategoriaAbierto}
         onGuardado={refrescar}
       />
     </div>

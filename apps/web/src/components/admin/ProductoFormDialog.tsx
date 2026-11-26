@@ -334,7 +334,7 @@ export function ProductoFormDialog({
                 id="imagen"
                 value={form.imagen}
                 onChange={(e) => actualizar('imagen', e.target.value)}
-                placeholder="/img/products/silla-...-1.svg"
+                placeholder="/img/products/silla-...-1.png"
               />
             </div>
             <div className="space-y-1.5">
@@ -343,7 +343,7 @@ export function ProductoFormDialog({
                 id="galeria"
                 value={form.galeria}
                 onChange={(e) => actualizar('galeria', e.target.value)}
-                placeholder={'/img/products/silla-...-1.svg\n/img/products/silla-...-2.svg'}
+                placeholder={'/img/products/silla-...-1.png\n/img/products/silla-...-2.png'}
                 className="min-h-[38px]"
               />
             </div>

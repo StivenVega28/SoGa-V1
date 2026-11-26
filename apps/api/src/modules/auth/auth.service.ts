@@ -22,6 +22,9 @@ export class AuthService {
       .map((origin) => origin.trim())
       .filter(Boolean);
 
+    // Better Auth se conecta al esquema de Prisma en español: las opciones `fields`
+    // mapean los nombres internos en inglés (userId, expiresAt, email…) a las
+    // columnas del modelo (`usuarioId`, `expiraEn`, `correo`…).
     this.auth = betterAuth({
       appName: 'SoGa',      baseURL,
       basePath: '/api/auth',

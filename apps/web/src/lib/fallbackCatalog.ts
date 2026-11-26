@@ -1,8 +1,8 @@
 import type { Producto } from './types';
 
 const gallery = (slug: string): string[] => [
-  `/img/products/silla-${slug}-1.svg`,
-  `/img/products/silla-${slug}-2.svg`,
+  `/img/products/silla-${slug}-1.png`,
+  `/img/products/silla-${slug}-2.png`,
 ];
 
 /**
