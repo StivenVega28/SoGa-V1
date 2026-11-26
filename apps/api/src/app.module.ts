@@ -9,6 +9,8 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { ProductosModule } from './modules/productos/productos.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
+import { ClientesModule } from './modules/clientes/clientes.module';
+import { UsuariosModule } from './modules/usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { ProveedoresModule } from './modules/proveedores/proveedores.module';
     ContactModule,
     ProductosModule,
     ProveedoresModule,
+    ClientesModule,
+    UsuariosModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: SesionGuard },

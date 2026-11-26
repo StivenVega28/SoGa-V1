@@ -1,6 +1,8 @@
 import type {
   CatalogoResponse,
   Categoria,
+  Cliente,
+  ClientePayload,
   ContactPayload,
   FeaturedResponse,
   MetaPaginacion,
@@ -9,6 +11,9 @@ import type {
   ProductoPayload,
   Proveedor,
   ProveedorPayload,
+  Rol,
+  Usuario,
+  UsuarioPayload,
 } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '/api';
@@ -38,6 +43,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
+}
+
+function construirQuery<T extends object>(filtros: T): string {
+  const params = new URLSearchParams();
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor !== undefined && valor !== '') params.set(clave, String(valor));
+  }
+  return params.toString();
 }
 
 export function getCatalogo(): Promise<CatalogoResponse> {
@@ -80,11 +93,7 @@ export interface FiltrosProductos {
 }
 
 export function listarProductos(filtros: FiltrosProductos = {}) {
-  const params = new URLSearchParams();
-  for (const [clave, valor] of Object.entries(filtros)) {
-    if (valor !== undefined && valor !== '') params.set(clave, String(valor));
-  }
-  const query = params.toString();
+  const query = construirQuery(filtros);
   return request<{ ok: boolean; data: ProductoAdmin[]; meta: MetaPaginacion }>(
     `/productos${query ? `?${query}` : ''}`,
   );
@@ -135,11 +144,7 @@ export interface FiltrosProveedores {
 }
 
 export function listarProveedores(filtros: FiltrosProveedores = {}) {
-  const params = new URLSearchParams();
-  for (const [clave, valor] of Object.entries(filtros)) {
-    if (valor !== undefined && valor !== '') params.set(clave, String(valor));
-  }
-  const query = params.toString();
+  const query = construirQuery(filtros);
   return request<{ ok: boolean; data: Proveedor[]; meta: MetaPaginacion }>(
     `/proveedores${query ? `?${query}` : ''}`,
   );
@@ -161,4 +166,89 @@ export function actualizarProveedor(id: number, payload: Partial<ProveedorPayloa
 
 export function eliminarProveedor(id: number) {
   return request<{ ok: boolean }>(`/proveedores/${id}`, { method: 'DELETE' });
+}
+
+/* --------------------------------- Clientes -------------------------------- */
+
+export interface FiltrosClientes {
+  buscar?: string;
+  pagina?: number;
+  porPagina?: number;
+}
+
+export function listarClientes(filtros: FiltrosClientes = {}) {
+  const query = construirQuery(filtros);
+  return request<{ ok: boolean; data: Cliente[]; meta: MetaPaginacion }>(
+    `/clientes${query ? `?${query}` : ''}`,
+  );
+}
+
+export function crearCliente(payload: ClientePayload) {
+  return request<{ ok: boolean; data: Cliente }>('/clientes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function actualizarCliente(id: number, payload: Partial<ClientePayload>) {
+  return request<{ ok: boolean; data: Cliente }>(`/clientes/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function eliminarCliente(id: number) {
+  return request<{ ok: boolean }>(`/clientes/${id}`, { method: 'DELETE' });
+}
+
+/* -------------------------------- Usuarios -------------------------------- */
+
+export interface FiltrosUsuarios {
+  buscar?: string;
+  rolId?: number;
+  estado?: 'activos' | 'eliminados';
+  pagina?: number;
+  porPagina?: number;
+}
+
+export function listarUsuarios(filtros: FiltrosUsuarios = {}) {
+  const query = construirQuery(filtros);
+  return request<{ ok: boolean; data: Usuario[]; meta: MetaPaginacion }>(
+    `/usuarios${query ? `?${query}` : ''}`,
+  );
+}
+
+export function listarRoles() {
+  return request<{ ok: boolean; data: Rol[] }>('/roles');
+}
+
+export function crearUsuario(payload: UsuarioPayload) {
+  return request<{ ok: boolean; data: Usuario }>('/usuarios', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function actualizarUsuario(id: string, payload: Partial<UsuarioPayload>) {
+  return request<{ ok: boolean; data: Usuario }>(`/usuarios/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function restablecerContrasena(id: string, contrasena: string) {
+  return request<{ ok: boolean }>(`/usuarios/${id}/contrasena`, {
+    method: 'PATCH',
+    body: JSON.stringify({ contrasena }),
+  });
+}
+
+export function eliminarUsuario(id: string) {
+  return request<{ ok: boolean }>(`/usuarios/${id}`, { method: 'DELETE' });
+}
+
+export function restaurarUsuario(id: string) {
+  return request<{ ok: boolean; data: Usuario }>(`/usuarios/${id}/restaurar`, {
+    method: 'POST',
+  });
 }

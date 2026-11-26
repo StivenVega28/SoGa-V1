@@ -132,3 +132,62 @@ export interface ProductoPayload {
   activo?: boolean;
   variantes?: VariantePayload[];
 }
+
+export interface Cliente {
+  id: number;
+  nit: string;
+  nombre: string;
+  apellido: string | null;
+  ciudad: string;
+  sucursal: string | null;
+  direccion: string;
+  telefono: string;
+  correo: string;
+  ventas: number;
+  cotizaciones: number;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export interface ClientePayload {
+  nit: string;
+  nombre: string;
+  apellido?: string;
+  ciudad: string;
+  sucursal?: string;
+  direccion: string;
+  telefono: string;
+  correo: string;
+}
+
+export interface Rol {
+  id: number;
+  nombre: string;
+  descripcion: string;
+}
+
+export interface Usuario {
+  id: string;
+  rolId: number | null;
+  rol: { id: number; nombre: string } | null;
+  documento: string | null;
+  nombre: string;
+  apellido: string | null;
+  telefono: string | null;
+  correo: string;
+  correoVerificado: boolean;
+  imagen: string | null;
+  eliminadoEn: string | null;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export interface UsuarioPayload {
+  nombre: string;
+  apellido?: string | null;
+  documento?: string | null;
+  telefono?: string | null;
+  correo: string;
+  rolId: number;
+  contrasena?: string;
+}

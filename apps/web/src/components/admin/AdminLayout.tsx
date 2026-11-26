@@ -11,7 +11,9 @@ import {
   ShieldCheck,
   ShoppingCart,
   Truck,
+  UserCog,
   Users,
+  type LucideIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,11 +21,21 @@ import { ThemeToggle } from '@/components/landing/ThemeToggle';
 import { cerrarSesion, obtenerPerfil } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-const NAV = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end?: boolean;
+  pronto?: boolean;
+  soloAdmin?: boolean;
+}
+
+const NAV: NavItem[] = [
   { to: '/admin', label: 'Inicio', icon: LayoutDashboard, end: true },
   { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/proveedores', label: 'Proveedores', icon: Truck },
-  { to: '/admin/clientes', label: 'Clientes', icon: Users, pronto: true },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users },
+  { to: '/admin/usuarios', label: 'Usuarios', icon: UserCog, soloAdmin: true },
   { to: '/admin/compras', label: 'Compras', icon: ShoppingCart, pronto: true },
   { to: '/admin/inventario', label: 'Inventario', icon: Boxes, pronto: true },
   { to: '/admin/ventas', label: 'Ventas', icon: Receipt, pronto: true },
@@ -35,6 +47,7 @@ export function AdminLayout() {
   const queryClient = useQueryClient();
   const { data } = useQuery({ queryKey: ['perfil'], queryFn: obtenerPerfil, staleTime: 60_000 });
   const usuario = data?.usuario;
+  const items = NAV.filter((item) => !item.soloAdmin || usuario?.rol === 'Administrador');
 
   async function salir() {
     try {
@@ -61,7 +74,7 @@ export function AdminLayout() {
         </a>
 
         <nav className="flex-1 space-y-0.5 p-2">
-          {NAV.map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

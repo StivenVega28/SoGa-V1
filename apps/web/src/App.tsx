@@ -13,6 +13,8 @@ import { LoginPage } from '@/pages/LoginPage';
 import { AdminInicioPage } from '@/pages/AdminInicioPage';
 import { AdminProductosPage } from '@/pages/AdminProductosPage';
 import { AdminProveedoresPage } from '@/pages/AdminProveedoresPage';
+import { AdminClientesPage } from '@/pages/AdminClientesPage';
+import { AdminUsuariosPage } from '@/pages/AdminUsuariosPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +55,8 @@ export default function App() {
               <Route index element={<AdminInicioPage />} />
               <Route path="productos" element={<AdminProductosPage />} />
               <Route path="proveedores" element={<AdminProveedoresPage />} />
+              <Route path="clientes" element={<AdminClientesPage />} />
+              <Route path="usuarios" element={<AdminUsuariosPage />} />
             </Route>
           </Route>
 
